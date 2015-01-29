@@ -7,6 +7,11 @@
 folder_name="_${2}"
 max_width=${3}
 
+os=`uname -s`
+if [ "$os" != "Darwin" ]; then
+    `type convert >/dev/null 2>&1 || { echo >&2 "I require ImageMagick but it's not installed.  Aborting."; exit 0; }`
+fi
+
 # copy and resize image with Mac's sips command
 # taking one parameter $1 = image to be resized
 function create_image {
@@ -17,12 +22,24 @@ function create_image {
         file_copy=${folder_name}/${f}
         cp ${f} ${folder_name}/${f}
 
-        width=`sips -g pixelWidth $f | tail -n1 | cut -d" " -f4`
+        if [ "$os" = 'Darwin' ]; then
+            width=`sips -g pixelWidth $f | tail -n1 | cut -d" " -f4`
+        else
+            #with Image Magick
+            width=`identify -format "%w" $f`
+        fi
 
         if [ $width -gt "${max_width}" ]
             then
             echo "Resizing ${f} from width ${width}px to ${max_width} px"
-            sips -Z 1024 ${file_copy}
+
+            if [ "$os" = 'Darwin' ]; then
+                #with sips
+                sips -Z 1024 ${file_copy}
+            else
+                #with ImageMagick
+                convert $file_copy -resize $max_width $file_copy
+            fi
         fi
     fi
 }
