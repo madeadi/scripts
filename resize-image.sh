@@ -79,14 +79,29 @@ function traverse_folder {
             # if the image in the target folder is older
             target=$folder/$folder_name/$d
             printf " file: $d: "
+
             if [ ! -f "$target" ]; then
+                # if file doesn't exist
                 create_image "$d"
                 printf " resized. \n"
-            elif [ "$d" -nt "$target" ]; then
-                create_image "$d"
-                printf " resized. Target is older \n"
             else
-                printf " skipped. Target is newer. \n"
+                d_width=$(identify "$target" | cut -d"x" -f2 | cut -d" " -f2)
+
+                if [[ $d_width -gt $max_width ]]; then
+                    # if file exists, but width is larger than max_width
+                    create_image "$d"
+                    printf "$target \n"
+                    printf " resized. Target is wider than max_width. $d_width, $max_width\n"
+
+                elif [ "$d" -nt "$target" ]; then
+                    create_image "$d"
+                    printf " resized. Target is older \n"
+
+                else
+                    printf " skipped. Target is newer. \n"
+
+                fi
+
             fi
         fi
     done
