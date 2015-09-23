@@ -29,6 +29,7 @@ function create_image {
         else
             #with Image Magick
             width=`identify -format "%w" "$f"`
+            height=`identify -format "%h" "$f"`
         fi
 
         if [ $width -gt "${max_width}" ]
@@ -85,7 +86,7 @@ function traverse_folder {
                 create_image "$d"
                 printf " resized. \n"
             else
-                d_width=$(identify "$target" | cut -d"x" -f2 | cut -d" " -f2)
+                d_width=$(identify -format "%w" "$target")
 
                 if [[ $d_width -gt $max_width ]]; then
                     # if file exists, but width is larger than max_width
